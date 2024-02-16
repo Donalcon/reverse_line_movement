@@ -1,0 +1,30 @@
+name: Scheduled Job
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Runs every 5 minutes, which is the shortest interval GitHub Actions allows.
+    - cron: '*/5 * * * *'
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run the script
+        env:
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          VI_USERNAME: ${{ secrets.VI_USERNAME }}
+          VI_PASSWORD: ${{ secrets.VI_PASSWORD }}
+        run: python -m main.py

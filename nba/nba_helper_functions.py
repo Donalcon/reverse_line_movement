@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+import pandas as pd
 import pytz
 import telegram
 from selenium import webdriver
@@ -160,26 +161,36 @@ def detect_reverse_line_movements(merged_df, bet_type, bookmakers):
     return rlm_opportunities, disagreement_opportunities
 
 
-notified_movements = set()
-
-
 def detect_and_accumulate(df, bet_type, bookmakers):
-    global notified_movements
     rlm_opportunities, disagreement_opportunities = detect_reverse_line_movements(df, bet_type, bookmakers)
+    NOTIFIED_MOVEMENTS_FILE = 'notified_movements.csv'
+
+    try:
+        notified_movements = pd.read_csv(NOTIFIED_MOVEMENTS_FILE)
+        notified_movements = remove_past_events(notified_movements)
+    except FileNotFoundError:
+        notified_movements = pd.DataFrame(columns=['identifier', 'time'])
 
     all_messages = []
     for opportunity in rlm_opportunities:
         identifier = f"{opportunity['team']}_{opportunity['bet_type']}_{opportunity['line']}_{opportunity['best_value_bookmaker']}_rlm"
-        if identifier not in notified_movements:
+        time = opportunity['time_new']
+        new_row = {'identifier': identifier, 'time': time}
+
+        if identifier not in notified_movements['identifier'].values:
             subject = f"<b>Reverse Line Movement Detected for {opportunity['team']}</b>"
             message = f"""{subject}<br>
                     - Best value is with <b>{opportunity['best_value_bookmaker']}</b> offering odds <b>{opportunity['best_value_odds']}</b> on <b>{opportunity['bet_type']}</b> , line: <b>{opportunity['line']}</b>."""
             all_messages.append(message)
-            notified_movements.add(identifier)
+            new_row_df = pd.DataFrame([new_row])  # Convert the new row to a single-row DataFrame
+            notified_movements = pd.concat([notified_movements, new_row_df], ignore_index=True)
 
     for opportunity in disagreement_opportunities:
         identifier = f"{opportunity['team']}_{opportunity['bet_type']}_{opportunity['line']}_{opportunity['bookmaker']}_dg"
-        if identifier not in notified_movements:
+        time = opportunity['time_new']
+        new_row = {'identifier': identifier, 'time': time}
+
+        if identifier not in notified_movements['identifier'].values:
             decision = "on" if opportunity['money_pc'] > 50 else "against"
             bet_message = f'Bet {decision} {opportunity["team"]} on {opportunity["bet_type"]}, line: {opportunity["line"]}.'
             bet_line = opportunity["line"]
@@ -197,7 +208,11 @@ def detect_and_accumulate(df, bet_type, bookmakers):
                        f"- <b>Betting Percentage</b>: {bets_pc}%\n"
                        f"- <b>Disagreement</b>: {disagreement}%\n")
             all_messages.append(message)
-            notified_movements.add(identifier)
+            new_row_df = pd.DataFrame([new_row])  # Convert the new row to a single-row DataFrame
+            notified_movements = pd.concat([notified_movements, new_row_df], ignore_index=True)
+
+    # Save the updated DataFrame to CSV
+    notified_movements.to_csv(NOTIFIED_MOVEMENTS_FILE, index=False)
 
     return "\n\n".join(all_messages)
 
