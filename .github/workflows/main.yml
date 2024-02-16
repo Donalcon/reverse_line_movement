@@ -27,4 +27,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           VI_USERNAME: ${{ secrets.VI_USERNAME }}
           VI_PASSWORD: ${{ secrets.VI_PASSWORD }}
-        run: python -m main.py
+        run: python -m main
