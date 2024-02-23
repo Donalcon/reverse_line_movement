@@ -7,6 +7,10 @@ from selenium import webdriver
 from telegram import Bot
 import asyncio
 from telegram.error import RetryAfter, BadRequest
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.os_manager import ChromeType
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 
 async def send_telegram_message(bot_token, chat_id, message, parse_mode='HTML'):
@@ -213,11 +217,12 @@ def detect_and_accumulate(df, bet_type, bookmakers):
 
 
 def initialize_webdriver():
-    options = webdriver.ChromeOptions()
-    options.add_argument("--disable-dev-shm-usage")
-    # options.add_argument("--headless")  # Optional: Run headless if desired
-    # Add any other desired options here
-    driver = webdriver.Chrome(options=options)
+    chrome_service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+    chrome_options = Options()
+    options = ["--disable-dev-shm-usage", "--headless"]
+    for option in options:
+        chrome_options.add_argument(option)
+    driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
     return driver
 
 
