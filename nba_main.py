@@ -1,6 +1,6 @@
 import pandas as pd
 import asyncio
-from nba_helper_functions import remove_past_events, detect_and_accumulate, send_long_message
+from nba.nba_helper_functions import remove_past_events, detect_and_accumulate, send_long_message
 from nba.nba_scraper import scraper
 import os
 
