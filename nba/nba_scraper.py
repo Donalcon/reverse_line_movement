@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 import time
 from selenium.common.exceptions import NoSuchElementException
-from nba_helper_functions import page_has_loaded, initialize_webdriver
+from nba.nba_helper_functions import page_has_loaded, initialize_webdriver
 from nba.nba_points import extract_total_data
 from nba.nba_spread import extract_spread_data
 

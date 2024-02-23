@@ -1,12 +1,11 @@
 from datetime import datetime
-
 import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 import time
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, TimeoutException
-from nba_helper_functions import page_has_loaded, convert_percentage_to_decimal, american_to_decimal
+from nba.nba_helper_functions import page_has_loaded, convert_percentage_to_decimal, american_to_decimal
 
 
 def extract_total_data(driver, url):
