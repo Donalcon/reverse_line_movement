@@ -57,15 +57,24 @@ def extract_total_data(driver, url):
         points = [el.text or 'NaN' for el in team_element.find_elements(By.CSS_SELECTOR, ".game-odds .data-value")]
         odds = [el.text or 'NaN' for el in team_element.find_elements(By.CSS_SELECTOR, ".game-odds .data-odds")]
 
-        # clean points
-        points = [None if val == 'N/A' or val == 'PK' else val for val in points]
-        points = [float(val.replace('o', '+')) if 'o' in val else float(val.replace('u', '-'))for val in points]
-        odds = [None if val == 'N/A' or val == 'PK' else float(val) for val in odds]
-        odds = [american_to_decimal(val) if val is not None else None for val in odds]
+        # Clean points and odds simultaneously
+        cleaned_points = []
+        cleaned_odds = []
+        cleaned_bookmakers = []
+        for val, point, bookmaker in zip(odds, points, bookmakers):
+            if val not in ['N/A', 'PK'] and point not in ['N/A', 'PK']:
+                val = float(val.replace('even', '-100'))
+                val = american_to_decimal(val)
+                cleaned_odds.append(val)
+                cleaned_points.append(float(point.replace('o', '+').replace('u', '-')))
+                cleaned_bookmakers.append(bookmaker)
+        odds = cleaned_odds
+        points = cleaned_points
+        bookmakers = cleaned_bookmakers
 
         # Extract bets percentage
         # trends-table-bets--0 > tr:nth-child(2) > td:nth-child(3) > div > span.pill.bold.matte
-        bets_pc_selector = f"#trends-table-bets--0 > tr:nth-child({i + 2}) > td:nth-child(3) > div > span.pill.bold"
+        bets_pc_selector = f"#trends-table-bets--0 > tr:nth-child({i + 2}) > td:nth-child(3) > div"
         bets_pc_element = driver.find_element(By.CSS_SELECTOR, bets_pc_selector)
         bets_pc = bets_pc_element.text
 

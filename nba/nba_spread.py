@@ -54,12 +54,22 @@ def extract_spread_data(driver, url):
         odds = [el.text or 'NaN' for el in team_element.find_elements(By.CSS_SELECTOR, ".game-odds .data-odds")]
 
         # cleaning
-        odds = [None if val == 'N/A' or val == 'PK' else float(val.replace('even', '-100')) for val in odds]
-        spreads = [None if val == 'N/A' or val == 'PK' else float(val) for val in spreads]
-        odds = [american_to_decimal(val) if val is not None else None for val in odds]
+        cleaned_odds = []
+        cleaned_bookmakers = []
+        cleaned_spreads = []
+        for val, spread, bookmaker in zip(odds, spreads, bookmakers):
+            if val not in ['N/A', 'PK'] and spread not in ['N/A', 'PK']:
+                val = float(val.replace('even', '-100'))
+                val = american_to_decimal(val)
+                cleaned_odds.append(val)
+                cleaned_spreads.append(float(spread))
+                cleaned_bookmakers.append(bookmaker)
+        odds = cleaned_odds
+        bookmakers = cleaned_bookmakers
+        spreads = cleaned_spreads
 
         # Extract bets percentage
-        bets_pc_selector = f"#trends-table-bets--0 > tr:nth-child({i + 2}) > td:nth-child(2) > div > span.pill.bold"
+        bets_pc_selector = f"#trends-table-bets--0 > tr:nth-child({i + 2}) > td:nth-child(2) > div"
         bets_pc_element = driver.find_element(By.CSS_SELECTOR, bets_pc_selector)
         bets_pc = bets_pc_element.text
 

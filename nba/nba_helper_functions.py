@@ -14,7 +14,9 @@ async def send_telegram_message(bot_token, chat_id, message, parse_mode='HTML'):
         return
     bot = Bot(token=bot_token)
     try:
-        await bot.send_message(chat_id=chat_id, text=message, parse_mode=parse_mode)
+        print("Attempting to send message...")
+        await bot.send_message(chat_id=chat_id, text=message, parse_mode='HTML')
+        print("Message sent successfully!")
         await asyncio.sleep(10)
     except BadRequest as e:
         print(f"Failed to send message due to BadRequest: {e}")
@@ -24,8 +26,8 @@ async def send_telegram_message(bot_token, chat_id, message, parse_mode='HTML'):
         await asyncio.sleep(wait_time)
         await send_telegram_message(bot_token, chat_id, message, parse_mode)  # Retry sending the message
         await asyncio.sleep(10)
-    finally:
-        await bot.close()
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 
 async def send_long_message(bot_token, chat_id, long_message, parse_mode='HTML', delay=10):
@@ -35,7 +37,8 @@ async def send_long_message(bot_token, chat_id, long_message, parse_mode='HTML',
     total_wait_time = 0
     for part in parts:
         try:
-            await send_telegram_message(bot_token, chat_id, part, parse_mode)
+            print('Sending message...')
+            await send_telegram_message(bot_token, chat_id, part, parse_mode='HTML')
             await asyncio.sleep(delay)  # Respect Telegram's rate limits
         except telegram.error.RetryAfter as e:
             print(f"Rate limit exceeded, waiting for {e.retry_after} seconds.")
@@ -44,16 +47,6 @@ async def send_long_message(bot_token, chat_id, long_message, parse_mode='HTML',
             await asyncio.sleep(e.retry_after + 1)  # Wait a bit longer than recommended
             await send_telegram_message(bot_token, chat_id, part, parse_mode)  # Wait a bit between messages to avoid hitting rate limits
     return total_wait_time
-
-
-def send_notifications(bot_token, chat_id, messages):
-    loop = asyncio.get_event_loop()
-    if loop.is_running():
-        # If the loop is running, schedule the task
-        loop.create_task(send_long_message(bot_token, chat_id, messages))
-    else:
-        # If there's no running loop, start one and run the task
-        asyncio.run(send_long_message(bot_token, chat_id, messages))
 
 
 def page_has_loaded(driver):
@@ -137,6 +130,7 @@ def detect_reverse_line_movements(merged_df, bet_type, bookmakers):
             # After processing all bookmakers, append the best disagreement opportunity
             if best_disagreement_value:
                 disagreement_opportunities.append({
+                    'time': row['time_new'],
                     'team': row['team'],
                     'line': best_disagreement_line,
                     'bookmaker': best_disagreement_bookmaker,
@@ -151,6 +145,7 @@ def detect_reverse_line_movements(merged_df, bet_type, bookmakers):
             # Add RLM opportunities as before
             if unchanged_bookmakers and best_value_bookmaker:
                 rlm_opportunities.append({
+                    'time_new': row['time_new'],
                     'team': row['team'],
                     'best_value_bookmaker': best_value_bookmaker,
                     'best_value_odds': best_value,
@@ -187,12 +182,12 @@ def detect_and_accumulate(df, bet_type, bookmakers):
 
     for opportunity in disagreement_opportunities:
         identifier = f"{opportunity['team']}_{opportunity['bet_type']}_{opportunity['line']}_{opportunity['bookmaker']}_dg"
-        time = opportunity['time_new']
+        time = opportunity['time']
         new_row = {'identifier': identifier, 'time': time}
 
         if identifier not in notified_movements['identifier'].values:
             decision = "on" if opportunity['money_pc'] > 50 else "against"
-            bet_message = f'Bet {decision} {opportunity["team"]} on {opportunity["bet_type"]}, line: {opportunity["line"]}.'
+            bet_message = f'Bet {decision} {opportunity["team"]} on {opportunity["bet_type"]}, line: {opportunity["line"]}'
             bet_line = opportunity["line"]
             bookmaker = opportunity['bookmaker']
             odds = opportunity['odds']
@@ -230,5 +225,8 @@ def remove_past_events(df):
     if df.empty or 'time' not in df.columns:
         return df
     current_time = datetime.now(pytz.utc)
+    # Convert 'time' column to datetime if it's not already
+    if not pd.api.types.is_datetime64_any_dtype(df['time']):
+        df['time'] = pd.to_datetime(df['time'])
     df = df[df['time'] > current_time]
     return df

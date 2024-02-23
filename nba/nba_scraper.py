@@ -28,6 +28,16 @@ def scraper(BASE_URL, NBA, USERNAME, PASSWORD):
     wait.until(EC.presence_of_element_located((By.NAME, "username")))
     wait.until(EC.presence_of_element_located((By.NAME, "password")))
 
+    # Accept cookies
+    try:
+        accept_cookies_button = driver.find_element(By.CSS_SELECTOR,
+                                                    "body > footer > div:nth-child(6) > div > div > a.cookie-close.button")
+        if accept_cookies_button:
+            accept_cookies_button.click()
+            time.sleep(1)  # Wait for the banner to disappear
+    except NoSuchElementException:
+        pass
+
     # Enter the email and password and submit the form
     driver.find_element(By.NAME, "username").send_keys(USERNAME)
     driver.find_element(By.NAME, "password").send_keys(PASSWORD)
@@ -38,16 +48,6 @@ def scraper(BASE_URL, NBA, USERNAME, PASSWORD):
     navigation_button = wait.until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, "#page-header\:menu > li:nth-child(6)")))
     ActionChains(driver).move_to_element(navigation_button).click().perform()
-
-    # Accept cookies
-    try:
-        # Example: Clicking on an "Accept Cookies" button if it exists
-        accept_cookies_button = driver.find_element(By.CSS_SELECTOR,
-                                                    "body > footer > div:nth-child(6) > div > div > a.cookie-close.button")
-        accept_cookies_button.click()
-        time.sleep(1)  # Wait for the banner to disappear
-    except NoSuchElementException:
-        pass
 
     # Get the table that contains the games
     wait.until(lambda d: page_has_loaded(d))

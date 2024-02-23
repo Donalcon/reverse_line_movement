@@ -1,6 +1,6 @@
 import pandas as pd
 import asyncio
-from nba_helper_functions import remove_past_events, detect_and_accumulate, send_notifications
+from nba_helper_functions import remove_past_events, detect_and_accumulate, send_long_message
 from nba.nba_scraper import scraper
 import os
 
@@ -24,6 +24,7 @@ async def scheduled_job():
         nba_spread_df = pd.read_csv(SPREAD_DF_FILE)
         nba_total_df = pd.read_csv(TOTAL_DF_FILE)
     except FileNotFoundError:
+        print("Files not found, creating new dataframes...")
         nba_spread_df, nba_total_df, _, _ = scraper(BASE_URL, NBA, USERNAME, PASSWORD)
         nba_spread_df.to_csv(SPREAD_DF_FILE, index=False)
         nba_total_df.to_csv(TOTAL_DF_FILE, index=False)
@@ -64,7 +65,7 @@ async def scheduled_job():
     # Join the messages with two newlines for separation
     message_to_send = '\n\n'.join(all_messages)
     # email the opportunities
-    send_notifications(BOT_TOKEN, CHAT_ID, message_to_send)
+    await send_long_message(BOT_TOKEN, CHAT_ID, message_to_send)
 
     # At the end, save the updated dataframes
     nba_spread_df.to_csv(SPREAD_DF_FILE, index=False)
