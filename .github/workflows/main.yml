@@ -34,13 +34,17 @@ jobs:
       - name: Check ChromeDriver version
         run: chromedriver --version
 
-      - name: Run the script
+      - name: Run the main script
         env:
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           VI_USERNAME: ${{ secrets.VI_USERNAME }}
           VI_PASSWORD: ${{ secrets.VI_PASSWORD }}
         run: python -m nba_main
+
+      - name: Send messages
+        env:
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: python -m nba_communications
 
       - name: Commit and push if content changed
         run: |-
