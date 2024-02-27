@@ -217,27 +217,18 @@ def detect_and_accumulate(df, bet_type, bookmakers):
 
 
 def initialize_webdriver():
-    retries = 0
-    max_retries = 3
-    driver = None  # Initialize driver as None to handle the case where initialization fails
-
-    while retries < max_retries:
-        try:
-            chrome_service = Service(ChromeDriverManager().install())
-            chrome_options = Options()
-            options = ["--disable-dev-shm-usage", "--headless", "--window-size=1920,1200"]
-            for option in options:
-                chrome_options.add_argument(option)
-            driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
-            print("WebDriver initialized successfully.")
-            break  # Exit the loop if the driver was initialized successfully
-        except Exception as e:
-            print(f"An error occurred while initializing the webdriver on attempt {retries + 1}: {e}")
-            retries += 1
-            if retries == max_retries:
-                print("Maximum retries reached. Failed to initialize WebDriver.")
-
+    try:
+        chrome_service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+        chrome_options = Options()
+        options = ["--disable-dev-shm-usage", "--headless", "--window-size=1920,1200"]
+        for option in options:
+            chrome_options.add_argument(option)
+        driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+    except Exception as e:
+        print(f"An error occurred while initializing the webdriver: {e}")
+        driver = None
     return driver
+
 
 def remove_past_events(df):
     if df.empty or 'time' not in df.columns:
