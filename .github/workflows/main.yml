@@ -44,7 +44,7 @@ jobs:
         env:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        run: python -m nba_communications
+        run: python -m nba/nba_communications
 
       - name: Commit and push if content changed
         run: |-
