@@ -217,12 +217,19 @@ def detect_and_accumulate(df, bet_type, bookmakers):
 
 
 def initialize_webdriver():
-    chrome_service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
-    chrome_options = Options()
-    options = ["--disable-dev-shm-usage", "--headless", "--window-size=1920,1200"]
-    for option in options:
-        chrome_options.add_argument(option)
-    driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+    retries = 0
+    while retries <= 3:
+        try:
+            chrome_service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+            chrome_options = Options()
+            options = ["--disable-dev-shm-usage", "--headless", "--window-size=1920,1200"]
+            for option in options:
+                chrome_options.add_argument(option)
+            driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+        except Exception as e:
+            print(f"An error occurred while initializing the webdriver: {e}")
+            retries += 1
+
     return driver
 
 
