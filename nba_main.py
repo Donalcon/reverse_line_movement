@@ -1,12 +1,9 @@
 import pandas as pd
-import asyncio
-from nba.nba_helper_functions import remove_past_events, detect_and_accumulate, send_long_message
+from nba.nba_helper_functions import remove_past_events, detect_and_accumulate
 from nba.nba_scraper import scraper
 import os
 
 # Access environment variables
-CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
-BOT_TOKEN = os.environ['TELEGRAM_BOT_TOKEN']
 USERNAME = os.environ['VI_USERNAME']
 PASSWORD = os.environ['VI_PASSWORD']
 
@@ -16,9 +13,10 @@ NBA = 'nba/odds/las-vegas/'
 # Define filenames for saving dataframes
 SPREAD_DF_FILE = 'nba_spread_df.csv'
 TOTAL_DF_FILE = 'nba_total_df.csv'
+MESSAGES_FILE = 'messages.txt'
 
 
-async def scheduled_job():
+def scheduled_job():
     # Load existing dataframes if they exist
     try:
         nba_spread_df = pd.read_csv(SPREAD_DF_FILE)
@@ -64,8 +62,9 @@ async def scheduled_job():
 
     # Join the messages with two newlines for separation
     message_to_send = '\n\n'.join(all_messages)
-    # email the opportunities
-    await send_long_message(BOT_TOKEN, CHAT_ID, message_to_send)
+    # save messages for sending
+    with open(MESSAGES_FILE, 'w') as file:
+        file.write(message_to_send)
 
     # At the end, save the updated dataframes
     nba_spread_df.to_csv(SPREAD_DF_FILE, index=False)
@@ -74,4 +73,4 @@ async def scheduled_job():
 
 # Execute the scheduler in a loop
 if __name__ == "__main__":
-    asyncio.run(scheduled_job())
+    scheduled_job()

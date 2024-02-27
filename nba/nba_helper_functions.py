@@ -2,55 +2,11 @@ import re
 from datetime import datetime
 import pandas as pd
 import pytz
-import telegram
 from selenium import webdriver
-from telegram import Bot
-import asyncio
-from telegram.error import RetryAfter, BadRequest
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.os_manager import ChromeType
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-
-
-async def send_telegram_message(bot_token, chat_id, message, parse_mode='HTML'):
-    if not message.strip():
-        return
-    bot = Bot(token=bot_token)
-    try:
-        print("Attempting to send message...")
-        await bot.send_message(chat_id=chat_id, text=message, parse_mode='HTML')
-        print("Message sent successfully!")
-        await asyncio.sleep(10)
-    except BadRequest as e:
-        print(f"Failed to send message due to BadRequest: {e}")
-    except RetryAfter as e:
-        wait_time = e.retry_after
-        print(f"Hit rate limit, retrying after {wait_time} seconds...")
-        await asyncio.sleep(wait_time)
-        await send_telegram_message(bot_token, chat_id, message, parse_mode)  # Retry sending the message
-        await asyncio.sleep(10)
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-
-
-async def send_long_message(bot_token, chat_id, long_message, parse_mode='HTML', delay=10):
-    MAX_LENGTH = 4096
-    parts = [long_message[i:i+MAX_LENGTH] for i in range(0, len(long_message), MAX_LENGTH)]
-    print(f'Number of messages to send: {len(parts)}')
-    total_wait_time = 0
-    for part in parts:
-        try:
-            print('Sending message...')
-            await send_telegram_message(bot_token, chat_id, part, parse_mode='HTML')
-            await asyncio.sleep(delay)  # Respect Telegram's rate limits
-        except telegram.error.RetryAfter as e:
-            print(f"Rate limit exceeded, waiting for {e.retry_after} seconds.")
-            wait_time = e.retry_after + 1
-            total_wait_time += wait_time
-            await asyncio.sleep(e.retry_after + 1)  # Wait a bit longer than recommended
-            await send_telegram_message(bot_token, chat_id, part, parse_mode)  # Wait a bit between messages to avoid hitting rate limits
-    return total_wait_time
 
 
 def page_has_loaded(driver):
