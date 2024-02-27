@@ -25,10 +25,19 @@ jobs:
         run: sudo apt install -y chromium-browser
       - name: Install Python dependencies
         run: pip install -r requirements.txt
-      - name: Check Chrome version
-        run: chromium --version
-      - name: Check ChromeDriver version
-        run: chromedriver --version
+      - name: Check and Install ChromeDriver
+        run: |
+          CHROMIUM_VERSION=$(chromium-browser --version | grep -oP 'Chromium \K[\d.]+')
+          echo "Chromium Version: $CHROMIUM_VERSION"
+          CHROMEDRIVER_VERSION=$(echo $CHROMIUM_VERSION | cut -d'.' -f1)
+          CHROMEDRIVER_URL="https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROMEDRIVER_VERSION"
+          LATEST_CHROMEDRIVER_VERSION=$(curl $CHROMEDRIVER_URL)
+          echo "Matching ChromeDriver Version: $LATEST_CHROMEDRIVER_VERSION"
+          wget -N "https://chromedriver.storage.googleapis.com/$LATEST_CHROMEDRIVER_VERSION/chromedriver_linux64.zip" -P ~/
+          unzip -o ~/chromedriver_linux64.zip -d ~/chromedriver/
+          sudo mv ~/chromedriver/chromedriver /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chromedriver
+          chromedriver --version
 
       - name: Run the script
         env:
