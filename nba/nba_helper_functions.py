@@ -78,7 +78,7 @@ def detect_reverse_line_movements(merged_df, bet_type, bookmakers):
                     best_value_line = new_line
 
             # Handle disagreements
-            if disagreement > 0.4:  # Example threshold
+            if disagreement > 0.1:  # Example threshold
                 if best_disagreement_value is None or (new_odds > best_disagreement_odds
                                                        and disagreement > best_disagreement_value
                                                        and (abs(new_odds - opening_odds) <= 1)):
