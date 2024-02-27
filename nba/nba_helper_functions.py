@@ -219,7 +219,8 @@ def detect_and_accumulate(df, bet_type, bookmakers):
 def initialize_webdriver():
     chrome_service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
     chrome_options = Options()
-    options = ["--disable-dev-shm-usage", "--headless", "window-size=1920x1080"]
+    options = ["--disable-dev-shm-usage", "--headless", "window-size=1920x1080",
+               "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"]
     for option in options:
         chrome_options.add_argument(option)
     driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
