@@ -60,8 +60,14 @@ def detect_reverse_line_movements(merged_df, bet_type, bookmakers):
 
         # Convert American odds to Decimal odds for comparison
         for bookmaker in bookmakers:
-            old_line = row[f'{bookmaker}_{bet_type}_old']
-            new_line = row[f'{bookmaker}_{bet_type}_new']
+            # Check if both old and new lines exist, otherwise continue to the next bookmaker
+            old_line_key = f'{bookmaker}_{bet_type}_old'
+            new_line_key = f'{bookmaker}_{bet_type}_new'
+            if old_line_key not in row or new_line_key not in row or pd.isnull(row[old_line_key]) or pd.isnull(row[new_line_key]):
+                continue
+
+            old_line = row[old_line_key]
+            new_line = row[new_line_key]
             money_pc = row['money_pc_new']
             bets_pc = row['bets_pc_new']
             new_odds = row[f'{bookmaker}_odds_new']
